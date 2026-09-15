@@ -1,0 +1,234 @@
+
+<div class="products-container">
+
+  <!-- ==========================================
+       HEADER
+  =========================================== -->
+
+  <div class="products-header">
+
+    <h1>Products</h1>
+
+    <p>
+      Choose a product and complete your purchase securely.
+    </p>
+
+  </div>
+
+
+  <!-- ==========================================
+       LOADING
+  =========================================== -->
+
+  <div
+    *ngIf="loading"
+    class="loading-container"
+  >
+
+    <div class="loader"></div>
+
+    <p>
+      Loading products...
+    </p>
+
+  </div>
+
+
+  <!-- ==========================================
+       ERROR
+  =========================================== -->
+
+  <div
+    *ngIf="!loading && errorMessage"
+    class="error-container"
+  >
+
+    <div class="error-icon">
+      !
+    </div>
+
+    <h3>
+      Something went wrong
+    </h3>
+
+    <p>
+      {{ errorMessage }}
+    </p>
+
+    <button
+      type="button"
+      class="retry-button"
+      (click)="getProducts()"
+    >
+      Retry
+    </button>
+
+  </div>
+
+
+  <!-- ==========================================
+       PRODUCTS
+  =========================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      !errorMessage &&
+      products.length > 0
+    "
+    class="products-grid"
+  >
+
+    <div
+      *ngFor="let product of products"
+      class="product-card"
+    >
+
+      <!-- PRODUCT IMAGE -->
+
+      <div class="product-image-container">
+
+        <img
+          [src]="product.imageUrl"
+          [alt]="product.name"
+          class="product-image"
+        />
+
+        <span
+          *ngIf="product.stockQuantity <= 0"
+          class="out-of-stock-badge"
+        >
+          Out of Stock
+        </span>
+
+      </div>
+
+
+      <!-- PRODUCT CONTENT -->
+
+      <div class="product-content">
+
+        <h2 class="product-name">
+          {{ product.name }}
+        </h2>
+
+
+        <p class="product-description">
+          {{ product.description }}
+        </p>
+
+
+        <!-- PRICE -->
+
+        <div class="product-price">
+
+          ₹{{ product.price | number:'1.2-2' }}
+
+        </div>
+
+
+        <!-- PRODUCT INFORMATION -->
+
+        <div class="product-info">
+
+          <span>
+            <strong>SKU:</strong>
+            {{ product.sku }}
+          </span>
+
+          <span>
+            <strong>Stock:</strong>
+            {{ product.stockQuantity }}
+          </span>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="product-actions">
+
+          <!-- BUY NOW -->
+
+          <button
+            type="button"
+            class="buy-now-button"
+
+            (click)="buyNow(product)"
+          >
+
+            <span
+              *ngIf="
+                buyingProductId === product.id
+              "
+              class="button-loader"
+            ></span>
+
+            <span>
+
+              {{
+                buyingProductId === product.id
+                  ? 'Processing...'
+                  : product.stockQuantity > 0
+                    ? 'Buy Now'
+                    : 'Out of Stock'
+              }}
+
+            </span>
+
+          </button>
+
+
+          <!-- VIEW PRODUCT -->
+
+          <a
+            *ngIf="product.productUrl"
+
+            [href]="product.productUrl"
+
+            target="_blank"
+
+            rel="noopener noreferrer"
+
+            class="product-link"
+          >
+            View Product
+          </a>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       NO PRODUCTS
+  =========================================== -->
+
+  <div
+    *ngIf="
+      !loading &&
+      !errorMessage &&
+      products.length === 0
+    "
+    class="no-products"
+  >
+
+    <div class="no-products-icon">
+      🛒
+    </div>
+
+    <h3>
+      No products found
+    </h3>
+
+    <p>
+      There are currently no products available.
+    </p>
+
+  </div>
+
+</div>
