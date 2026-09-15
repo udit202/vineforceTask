@@ -1,69 +1,424 @@
 <!-- src/app/CrudPage/country-crud/country-crud.html -->
 
 <div class="country-crud">
-  <h2>Country Management</h2>
 
-  <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
-  <div class="alert success" *ngIf="successMessage">{{ successMessage }}</div>
+  <!-- ================================================= -->
+  <!-- HEADER -->
+  <!-- ================================================= -->
 
-  <form class="country-form" (ngSubmit)="onSubmit()">
-    <h3>{{ isEditMode ? 'Edit Country' : 'Add Country' }}</h3>
+  <div class="page-header">
 
-    <div class="form-row">
-      <label for="name">Name</label>
-      <input id="name" name="name" type="text" [(ngModel)]="form.name" required />
+    <div>
+
+      <h2>
+        Country Management
+      </h2>
+
+      <p>
+        Manage countries in the system.
+      </p>
+
     </div>
 
-    <div class="form-row">
-      <label for="code">Code</label>
-      <input id="code" name="code" type="text" [(ngModel)]="form.code" required />
+
+    <button
+      type="button"
+      class="refresh-btn"
+      (click)="fetchCountries()"
+      [disabled]="loading">
+
+      <span *ngIf="!loading">
+        ↻
+      </span>
+
+      <span
+        *ngIf="loading"
+        class="spinner-small">
+      </span>
+
+      {{ loading ? 'Loading...' : 'Refresh' }}
+
+    </button>
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- ALERTS -->
+  <!-- ================================================= -->
+
+  <div
+    class="alert error"
+    *ngIf="errorMessage">
+
+    <span>⚠</span>
+
+    {{ errorMessage }}
+
+    <button
+      type="button"
+      (click)="fetchCountries()">
+
+      Retry
+
+    </button>
+
+  </div>
+
+
+  <div
+    class="alert success"
+    *ngIf="successMessage">
+
+    <span>✓</span>
+
+    {{ successMessage }}
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- FORM -->
+  <!-- ================================================= -->
+
+  <form
+    class="country-form"
+    (ngSubmit)="onSubmit()">
+
+
+    <div class="form-header">
+
+      <div>
+
+        <h3>
+          {{ isEditMode
+            ? 'Edit Country'
+            : 'Add Country'
+          }}
+        </h3>
+
+        <p>
+          {{
+            isEditMode
+              ? 'Update country information.'
+              : 'Create a new country.'
+          }}
+        </p>
+
+      </div>
+
     </div>
+
+
+    <!-- NAME -->
+
+    <div class="form-row">
+
+      <label for="name">
+        Name
+      </label>
+
+      <input
+        id="name"
+        name="name"
+        type="text"
+        placeholder="Enter country name"
+        [(ngModel)]="form.name"
+        [disabled]="saving"
+        required />
+
+    </div>
+
+
+    <!-- CODE -->
+
+    <div class="form-row">
+
+      <label for="code">
+        Code
+      </label>
+
+      <input
+        id="code"
+        name="code"
+        type="text"
+        placeholder="Enter country code"
+        [(ngModel)]="form.code"
+        [disabled]="saving"
+        required />
+
+    </div>
+
+
+    <!-- ACTIVE -->
 
     <div class="form-row checkbox">
+
       <label>
-        <input name="isActive" type="checkbox" [(ngModel)]="form.isActive" />
-        Active
+
+        <input
+          name="isActive"
+          type="checkbox"
+          [(ngModel)]="form.isActive"
+          [disabled]="saving" />
+
+        <span>
+          Active
+        </span>
+
       </label>
+
     </div>
+
+
+    <!-- FORM BUTTONS -->
 
     <div class="form-actions">
-      <button type="submit" [disabled]="loading">
-        {{ isEditMode ? 'Update' : 'Create' }}
+
+      <button
+        type="submit"
+        class="primary-btn"
+        [disabled]="saving">
+
+        <span
+          *ngIf="saving"
+          class="spinner-small">
+        </span>
+
+        {{
+          saving
+            ? (isEditMode
+                ? 'Updating...'
+                : 'Creating...')
+            : (isEditMode
+                ? 'Update Country'
+                : 'Create Country')
+        }}
+
       </button>
-      <button type="button" *ngIf="isEditMode" (click)="cancelEdit()">
+
+
+      <button
+        type="button"
+        class="secondary-btn"
+        *ngIf="isEditMode"
+        [disabled]="saving"
+        (click)="cancelEdit()">
+
         Cancel
+
       </button>
+
     </div>
+
   </form>
 
-  <div class="table-wrapper">
-    <div *ngIf="loading" class="loading">Loading...</div>
 
-    <table *ngIf="!loading">
+  <!-- ================================================= -->
+  <!-- COUNTRIES TABLE -->
+  <!-- ================================================= -->
+
+  <div class="table-wrapper">
+
+
+    <!-- LOADING -->
+
+    <div
+      *ngIf="loading"
+      class="loading">
+
+      <div class="loader"></div>
+
+      <span>
+        Loading countries...
+      </span>
+
+    </div>
+
+
+    <!-- TABLE -->
+
+    <table
+      *ngIf="!loading">
+
       <thead>
+
         <tr>
-          <th>Id</th>
-          <th>Name</th>
-          <th>Code</th>
-          <th>Active</th>
-          <th>Actions</th>
+
+          <th>
+            ID
+          </th>
+
+          <th>
+            Name
+          </th>
+
+          <th>
+            Code
+          </th>
+
+          <th>
+            Active
+          </th>
+
+          <th>
+            Actions
+          </th>
+
         </tr>
+
       </thead>
+
+
       <tbody>
-        <tr *ngFor="let country of countries">
-          <td>{{ country.id }}</td>
-          <td>{{ country.name }}</td>
-          <td>{{ country.code }}</td>
-          <td>{{ country.isActive ? 'Yes' : 'No' }}</td>
+
+
+        <!-- COUNTRY ROWS -->
+
+        <tr
+          *ngFor="let country of countries">
+
+
           <td>
-            <button (click)="startEdit(country)">Edit</button>
-            <button class="danger" (click)="deleteCountry(country.id)">Delete</button>
+
+            <span class="id-badge">
+              #{{ country.id }}
+            </span>
+
           </td>
+
+
+          <td>
+
+            <strong>
+              {{ country.name }}
+            </strong>
+
+          </td>
+
+
+          <td>
+
+            <span class="code-badge">
+              {{ country.code }}
+            </span>
+
+          </td>
+
+
+          <td>
+
+            <span
+              class="status-badge"
+              [class.active]="country.isActive"
+              [class.inactive]="!country.isActive">
+
+              {{ country.isActive
+                ? 'Active'
+                : 'Inactive'
+              }}
+
+            </span>
+
+          </td>
+
+
+          <!-- ACTIONS -->
+
+          <td>
+
+            <div class="action-buttons">
+
+
+              <!-- EDIT -->
+
+              <button
+                type="button"
+                class="edit-btn"
+                [disabled]="
+                  saving ||
+                  deletingId !== null
+                "
+                (click)="startEdit(country)">
+
+                ✏️
+                Edit
+
+              </button>
+
+
+              <!-- DELETE -->
+
+              <button
+                type="button"
+                class="delete-btn"
+                [disabled]="
+                  saving ||
+                  deletingId !== null
+                "
+                (click)="deleteCountry(country.id)">
+
+                <span
+                  *ngIf="
+                    deletingId !== country.id
+                  ">
+
+                  🗑️
+                  Delete
+
+                </span>
+
+
+                <span
+                  *ngIf="
+                    deletingId === country.id
+                  ">
+
+                  Deleting...
+
+                </span>
+
+              </button>
+
+
+            </div>
+
+          </td>
+
         </tr>
-        <tr *ngIf="countries.length === 0">
-          <td colspan="5" class="empty">No countries found.</td>
+
+
+        <!-- EMPTY -->
+
+        <tr
+          *ngIf="
+            countries.length === 0
+          ">
+
+          <td
+            colspan="5"
+            class="empty">
+
+            <div class="empty-icon">
+              🌍
+            </div>
+
+            <strong>
+              No countries found
+            </strong>
+
+            <span>
+              Create your first country using the form above.
+            </span>
+
+          </td>
+
         </tr>
+
       </tbody>
+
     </table>
+
   </div>
+
 </div>

@@ -1,9 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef
+} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import Swal from 'sweetalert2';
 
 import { environment } from '../../../environments/environment';
+
 
 interface Product {
   id: number;
@@ -13,6 +18,7 @@ interface Product {
   sku?: string;
   stockQuantity?: number;
 }
+
 
 interface Payment {
   id?: number;
@@ -25,8 +31,10 @@ interface Payment {
   currency?: string;
 }
 
+
 interface Order {
   id: number;
+
   productId?: number;
   quantity?: number;
 
@@ -39,12 +47,14 @@ interface Order {
   amount?: number;
 
   status?: number | string;
+
   createdAt?: string;
   updatedAt?: string;
 
   product?: Product;
   payment?: Payment;
 }
+
 
 @Component({
   selector: 'app-orders',
@@ -58,225 +68,421 @@ export class Orders implements OnInit {
   orders: Order[] = [];
 
   loading = false;
+
   errorMessage = '';
 
   selectedOrder: Order | null = null;
 
-  private apiUrl = `${environment.apiBaseUrl}/OrderCrud`;
+  private apiUrl =
+    `${environment.apiBaseUrl}/OrderCrud`;
 
-  constructor(private http: HttpClient) {}
+
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef
+  ) {}
+
 
   ngOnInit(): void {
     this.loadOrders();
   }
 
-  // =========================
-  // GET ALL ORDERS
-  // =========================
+
+  // ==========================================
+  // LOAD ALL ORDERS
+  // ==========================================
+
   loadOrders(): void {
+
     this.loading = true;
+
     this.errorMessage = '';
 
-    this.http.get<Order[]>(this.apiUrl).subscribe({
+    this.http.get<any>(this.apiUrl).subscribe({
+
       next: (response) => {
-        this.orders = response || [];
+
+        console.log(
+          'Orders API Response:',
+          response
+        );
+
+
+        // Normal array response
+        if (Array.isArray(response)) {
+
+          this.orders = response;
+
+        }
+
+        // { data: [] }
+        else if (
+          response?.data &&
+          Array.isArray(response.data)
+        ) {
+
+          this.orders = response.data;
+
+        }
+
+        // { items: [] }
+        else if (
+          response?.items &&
+          Array.isArray(response.items)
+        ) {
+
+          this.orders = response.items;
+
+        }
+
+        // Unexpected response
+        else {
+
+          console.warn(
+            'Unexpected Orders API response:',
+            response
+          );
+
+          this.orders = [];
+
+        }
+
+
         this.loading = false;
+
+
+        console.log(
+          'Orders assigned:',
+          this.orders
+        );
+
+
+        // Force Angular UI update
+        this.cdr.detectChanges();
+
       },
 
+
       error: (error) => {
-        console.error('Error loading orders:', error);
+
+        console.error(
+          'Orders API Error:',
+          error
+        );
+
 
         this.loading = false;
+
 
         this.errorMessage =
           error?.error?.message ||
+          error?.message ||
           'Unable to load orders. Please try again.';
+
+
+        // Force Angular UI update
+        this.cdr.detectChanges();
+
       }
+
     });
+
   }
 
-  // =========================
-  // GET ORDER BY ID
-  // =========================
+
+  // ==========================================
+  // VIEW ORDER
+  // ==========================================
+
   viewOrder(orderId: number): void {
 
-    this.http.get<Order>(`${this.apiUrl}/${orderId}`).subscribe({
+    this.http
+      .get<Order>(
+        `${this.apiUrl}/${orderId}`
+      )
+      .subscribe({
 
-      next: (order) => {
-        this.selectedOrder = order;
-      },
+        next: (order) => {
 
-      error: (error) => {
+          this.selectedOrder = order;
 
-        console.error('Error loading order:', error);
-
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text:
-            error?.error?.message ||
-            'Unable to load order details.'
-        });
-      }
-
-    });
-  }
-
-  // =========================
-  // CLOSE ORDER DETAILS
-  // =========================
-  closeOrderDetails(): void {
-    this.selectedOrder = null;
-  }
-
-  // =========================
-  // UPDATE ORDER STATUS
-  // =========================
-  updateStatus(order: Order, status: number): void {
-
-    const statusName = this.getOrderStatus(status);
-
-    Swal.fire({
-      title: 'Update Order Status?',
-      text: `Change order #${order.id} status to ${statusName}?`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, update',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-
-      if (!result.isConfirmed) {
-        return;
-      }
-
-      this.http.put<Order>(
-        `${this.apiUrl}/${order.id}/status`,
-        {
-          status: status
-        }
-      ).subscribe({
-
-        next: (updatedOrder) => {
-
-          const index = this.orders.findIndex(
-            x => x.id === order.id
-          );
-
-          if (index !== -1) {
-            this.orders[index] = updatedOrder;
-          }
-
-          if (this.selectedOrder?.id === order.id) {
-            this.selectedOrder = updatedOrder;
-          }
-
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated',
-            text: 'Order status updated successfully.',
-            timer: 1500,
-            showConfirmButton: false
-          });
+          this.cdr.detectChanges();
 
         },
 
         error: (error) => {
 
           console.error(
-            'Error updating order status:',
+            'Error loading order:',
             error
           );
 
+
           Swal.fire({
             icon: 'error',
-            title: 'Update Failed',
+            title: 'Error',
             text:
               error?.error?.message ||
-              'Unable to update order status.'
+              'Unable to load order details.'
           });
 
         }
 
       });
 
-    });
   }
 
-  // =========================
+
+  // ==========================================
+  // CLOSE MODAL
+  // ==========================================
+
+  closeOrderDetails(): void {
+
+    this.selectedOrder = null;
+
+  }
+
+
+  // ==========================================
+  // UPDATE ORDER STATUS
+  // ==========================================
+
+  updateStatus(
+    order: Order,
+    status: number
+  ): void {
+
+    const statusName =
+      this.getOrderStatus(status);
+
+
+    Swal.fire({
+
+      title: 'Update Order Status?',
+
+      text:
+        `Change order #${order.id} status to ${statusName}?`,
+
+      icon: 'question',
+
+      showCancelButton: true,
+
+      confirmButtonText: 'Yes, update',
+
+      cancelButtonText: 'Cancel'
+
+    }).then((result) => {
+
+      if (!result.isConfirmed) {
+        return;
+      }
+
+
+      this.http
+        .put<Order>(
+          `${this.apiUrl}/${order.id}/status`,
+          {
+            status: status
+          }
+        )
+        .subscribe({
+
+          next: (updatedOrder) => {
+
+            const index =
+              this.orders.findIndex(
+                x => x.id === order.id
+              );
+
+
+            if (index !== -1) {
+
+              this.orders[index] =
+                updatedOrder;
+
+            }
+
+
+            if (
+              this.selectedOrder?.id ===
+              order.id
+            ) {
+
+              this.selectedOrder =
+                updatedOrder;
+
+            }
+
+
+            this.cdr.detectChanges();
+
+
+            Swal.fire({
+
+              icon: 'success',
+
+              title: 'Updated',
+
+              text:
+                'Order status updated successfully.',
+
+              timer: 1500,
+
+              showConfirmButton: false
+
+            });
+
+          },
+
+
+          error: (error) => {
+
+            console.error(
+              'Error updating order status:',
+              error
+            );
+
+
+            Swal.fire({
+
+              icon: 'error',
+
+              title: 'Update Failed',
+
+              text:
+                error?.error?.message ||
+                'Unable to update order status.'
+
+            });
+
+          }
+
+        });
+
+    });
+
+  }
+
+
+  // ==========================================
   // DELETE ORDER
-  // =========================
+  // ==========================================
+
   deleteOrder(order: Order): void {
 
     Swal.fire({
+
       title: 'Delete Order?',
-      text: `Are you sure you want to delete order #${order.id}?`,
+
+      text:
+        `Are you sure you want to delete order #${order.id}?`,
+
       icon: 'warning',
+
       showCancelButton: true,
+
       confirmButtonColor: '#dc2626',
+
       cancelButtonText: 'Cancel',
+
       confirmButtonText: 'Yes, delete'
+
     }).then((result) => {
 
       if (!result.isConfirmed) {
         return;
       }
 
-      this.http.delete(
-        `${this.apiUrl}/${order.id}`
-      ).subscribe({
 
-        next: () => {
+      this.http
+        .delete(
+          `${this.apiUrl}/${order.id}`
+        )
+        .subscribe({
 
-          this.orders = this.orders.filter(
-            x => x.id !== order.id
-          );
+          next: () => {
 
-          if (this.selectedOrder?.id === order.id) {
-            this.selectedOrder = null;
+            this.orders =
+              this.orders.filter(
+                x => x.id !== order.id
+              );
+
+
+            if (
+              this.selectedOrder?.id ===
+              order.id
+            ) {
+
+              this.selectedOrder = null;
+
+            }
+
+
+            this.cdr.detectChanges();
+
+
+            Swal.fire({
+
+              icon: 'success',
+
+              title: 'Deleted',
+
+              text:
+                'Order deleted successfully.',
+
+              timer: 1500,
+
+              showConfirmButton: false
+
+            });
+
+          },
+
+
+          error: (error) => {
+
+            console.error(
+              'Error deleting order:',
+              error
+            );
+
+
+            Swal.fire({
+
+              icon: 'error',
+
+              title: 'Delete Failed',
+
+              text:
+                error?.error?.message ||
+                'Unable to delete order.'
+
+            });
+
           }
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Deleted',
-            text: 'Order deleted successfully.',
-            timer: 1500,
-            showConfirmButton: false
-          });
-
-        },
-
-        error: (error) => {
-
-          console.error(
-            'Error deleting order:',
-            error
-          );
-
-          Swal.fire({
-            icon: 'error',
-            title: 'Delete Failed',
-            text:
-              error?.error?.message ||
-              'Unable to delete order.'
-          });
-
-        }
-
-      });
+        });
 
     });
+
   }
 
-  // =========================
+
+  // ==========================================
   // ORDER STATUS
-  // =========================
+  // ==========================================
+
   getOrderStatus(
     status: number | string | undefined
   ): string {
 
     if (typeof status === 'string') {
+
       return status;
+
     }
+
 
     switch (status) {
 
@@ -303,19 +509,25 @@ export class Orders implements OnInit {
 
       default:
         return 'Unknown';
+
     }
+
   }
 
-  // =========================
-  // STATUS CLASS
-  // =========================
+
+  // ==========================================
+  // STATUS CSS CLASS
+  // ==========================================
+
   getStatusClass(
     status: number | string | undefined
   ): string {
 
-    const statusName = this
-      .getOrderStatus(status)
-      .toLowerCase();
+    const statusName =
+      this
+        .getOrderStatus(status)
+        .toLowerCase();
+
 
     switch (statusName) {
 
@@ -342,19 +554,26 @@ export class Orders implements OnInit {
 
       default:
         return 'status-default';
+
     }
+
   }
 
-  // =========================
+
+  // ==========================================
   // PAYMENT STATUS
-  // =========================
+  // ==========================================
+
   getPaymentStatus(
     status: number | string | undefined
   ): string {
 
     if (typeof status === 'string') {
+
       return status;
+
     }
+
 
     switch (status) {
 
@@ -375,12 +594,16 @@ export class Orders implements OnInit {
 
       default:
         return 'Unknown';
+
     }
+
   }
 
-  // =========================
+
+  // ==========================================
   // FORMAT DATE
-  // =========================
+  // ==========================================
+
   formatDate(
     date: string | undefined
   ): string {
@@ -388,6 +611,7 @@ export class Orders implements OnInit {
     if (!date) {
       return '-';
     }
+
 
     return new Date(date).toLocaleString(
       'en-IN',
@@ -399,64 +623,110 @@ export class Orders implements OnInit {
         minute: '2-digit'
       }
     );
+
   }
 
-  // =========================
-  // GET ORDER AMOUNT
-  // =========================
-  getOrderAmount(order: Order): number {
 
-    if (order.totalAmount !== undefined) {
+  // ==========================================
+  // ORDER AMOUNT
+  // ==========================================
+
+  getOrderAmount(
+    order: Order
+  ): number {
+
+    if (
+      order.totalAmount !== undefined
+    ) {
+
       return order.totalAmount;
+
     }
 
-    if (order.amount !== undefined) {
+
+    if (
+      order.amount !== undefined
+    ) {
+
       return order.amount;
+
     }
 
-    if (order.payment?.amount !== undefined) {
+
+    if (
+      order.payment?.amount !== undefined
+    ) {
+
       return order.payment.amount;
+
     }
 
-    if (order.product?.price !== undefined) {
-      return order.product.price *
-        (order.quantity || 1);
+
+    if (
+      order.product?.price !== undefined
+    ) {
+
+      return (
+        order.product.price *
+        (order.quantity || 1)
+      );
+
     }
+
 
     return 0;
+
   }
 
-  // =========================
-  // GET TOTAL ORDER VALUE
-  // =========================
+
+  // ==========================================
+  // TOTAL ORDER VALUE
+  // ==========================================
+
   getTotalOrderValue(): number {
 
     return this.orders.reduce(
-      (total, order) =>
-        total + this.getOrderAmount(order),
+      (
+        total,
+        order
+      ) =>
+        total +
+        this.getOrderAmount(order),
       0
     );
+
   }
 
-  // =========================
-  // GET ORDERS BY STATUS
-  // =========================
-  getOrdersByStatus(status: string): number {
+
+  // ==========================================
+  // ORDERS BY STATUS
+  // ==========================================
+
+  getOrdersByStatus(
+    status: string
+  ): number {
 
     return this.orders.filter(
       order =>
-        this.getOrderStatus(order.status) === status
+        this.getOrderStatus(
+          order.status
+        ) === status
     ).length;
+
   }
 
-  // =========================
+
+  // ==========================================
   // TRACK BY
-  // =========================
+  // ==========================================
+
   trackByOrderId(
     index: number,
     order: Order
   ): number {
 
     return order.id;
+
   }
+
 }
