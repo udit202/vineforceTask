@@ -1,16 +1,27 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using vineforceTask.DatabaseConnect;
 using vineforceTask.Repo.Implementation;
 using vineforceTask.Repo.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// ==========================================
+// Controllers + JSON Configuration
+// ==========================================
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Prevent Order -> Payment -> Order -> Payment
+        // JSON serialization cycle
+        options.JsonSerializerOptions.ReferenceHandler =
+            ReferenceHandler.IgnoreCycles;
+    });
 
-// Controllers
-builder.Services.AddControllers();
-
-// Entity Framework Core + SQL Server
+// ==========================================
+// Database
+// ==========================================
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -21,14 +32,29 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     )
 );
 
-// Repository Dependency Injection
-builder.Services.AddScoped<ICountryRepository, CountryImplementation>();
+// ==========================================
+// HTTP Client Factory
+// Required by PaymentImp for Razorpay API
+// ==========================================
+builder.Services.AddHttpClient();
 
-// Swagger / OpenAPI
+// ==========================================
+// Repository Dependency Injection
+// ==========================================
+builder.Services.AddScoped<ICountryRepository, CountryImplementation>();
+builder.Services.AddScoped<IProducts, ProductIMp>();
+builder.Services.AddScoped<IOrder, OrderRepository>();
+builder.Services.AddScoped<IPayment, PaymentImp>();
+
+// ==========================================
+// Swagger
+// ==========================================
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS - Allow Angular
+// ==========================================
+// CORS
+// ==========================================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
@@ -42,17 +68,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
+// ==========================================
+// Swagger
+// ==========================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// ==========================================
+// Middleware
+// ==========================================
 app.UseHttpsRedirection();
 
-// CORS
 app.UseCors("AllowAngular");
 
 app.UseAuthorization();

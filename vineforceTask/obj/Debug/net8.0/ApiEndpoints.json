@@ -79,6 +79,196 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "GetAll",
+    "RelativePath": "api/OrderCrud",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "Create",
+    "RelativePath": "api/OrderCrud",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "CreateOrderDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "GetById",
+    "RelativePath": "api/OrderCrud/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "Delete",
+    "RelativePath": "api/OrderCrud/{id}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "UpdateStatus",
+    "RelativePath": "api/OrderCrud/{id}/status",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "vineforceTask.DTO.order.UpdateOrderStatusDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.OrderCrud",
+    "Method": "GetByUser",
+    "RelativePath": "api/OrderCrud/user/{userId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.PaymentCrud",
+    "Method": "Create",
+    "RelativePath": "api/PaymentCrud",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "vineforceTask.DTO.Payment.CreatePaymentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.PaymentCrud",
+    "Method": "GetById",
+    "RelativePath": "api/PaymentCrud/{id}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.PaymentCrud",
+    "Method": "UpdateStatus",
+    "RelativePath": "api/PaymentCrud/{id}/status",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      },
+      {
+        "Name": "dto",
+        "Type": "vineforceTask.DTO.Payment.UpdatePaymentStatusDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.PaymentCrud",
+    "Method": "GetByOrder",
+    "RelativePath": "api/PaymentCrud/order/{orderId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "orderId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.PaymentCrud",
+    "Method": "Verify",
+    "RelativePath": "api/PaymentCrud/verify",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "vineforceTask.DTO.Payment.VerifyPaymentDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "vineforceTask.Controllers.Products",
+    "Method": "GetAllProducts",
+    "RelativePath": "api/Products",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "vineforceTask.Controllers.WeatherForecastController",
     "Method": "Get",
     "RelativePath": "WeatherForecast",

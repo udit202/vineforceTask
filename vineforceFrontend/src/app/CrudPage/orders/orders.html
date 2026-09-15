@@ -1,1 +1,674 @@
-<p>orders works!</p>
+<div class="orders-page">
+
+  <!-- HEADER -->
+  <div class="page-header">
+
+    <div>
+      <h1>Orders</h1>
+      <p>Manage and monitor all customer orders.</p>
+    </div>
+
+    <button
+      class="refresh-btn"
+      type="button"
+      (click)="loadOrders()"
+      [disabled]="loading">
+
+      <span *ngIf="!loading">↻</span>
+      <span *ngIf="loading" class="spinner-small"></span>
+
+      {{ loading ? 'Loading...' : 'Refresh' }}
+
+    </button>
+
+  </div>
+
+
+  <!-- ERROR -->
+  <div
+    class="error-box"
+    *ngIf="errorMessage">
+
+    <span>⚠</span>
+
+    <div>
+      <strong>Something went wrong</strong>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="loadOrders()">
+      Retry
+    </button>
+
+  </div>
+
+
+  <!-- SUMMARY -->
+  <div
+    class="summary-grid"
+    *ngIf="!loading && !errorMessage">
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        🛒
+      </div>
+
+      <div>
+        <span>Total Orders</span>
+        <strong>{{ orders.length }}</strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        💰
+      </div>
+
+      <div>
+        <span>Total Value</span>
+
+        <strong>
+          ₹{{ getTotalOrderValue() | number:'1.2-2' }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        🚚
+      </div>
+
+      <div>
+        <span>Delivered</span>
+
+        <strong>
+          {{ getOrdersByStatus('Delivered') }}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+      <div class="summary-icon">
+        ⏳
+      </div>
+
+      <div>
+        <span>Pending</span>
+
+        <strong>
+          {{ getOrdersByStatus('Pending') }}
+        </strong>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- LOADING -->
+  <div
+    class="loading-container"
+    *ngIf="loading">
+
+    <div class="loader"></div>
+
+    <p>Loading orders...</p>
+
+  </div>
+
+
+  <!-- EMPTY -->
+  <div
+    class="empty-state"
+    *ngIf="!loading && !errorMessage && orders.length === 0">
+
+    <div class="empty-icon">
+      🛒
+    </div>
+
+    <h2>No Orders Found</h2>
+
+    <p>
+      There are currently no orders in the system.
+    </p>
+
+    <button
+      type="button"
+      class="primary-btn"
+      (click)="loadOrders()">
+      Refresh Orders
+    </button>
+
+  </div>
+
+
+  <!-- ORDERS TABLE -->
+  <div
+    class="table-container"
+    *ngIf="!loading && !errorMessage && orders.length > 0">
+
+    <div class="table-header">
+
+      <div>
+        <h2>All Orders</h2>
+        <p>{{ orders.length }} order(s) found</p>
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>Order</th>
+
+            <th>Customer</th>
+
+            <th>Product</th>
+
+            <th>Qty</th>
+
+            <th>Amount</th>
+
+            <th>Payment</th>
+
+            <th>Order Status</th>
+
+            <th>Date</th>
+
+            <th>Actions</th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let order of orders;
+              trackBy: trackByOrderId
+            ">
+
+            <!-- ORDER -->
+            <td>
+
+              <div class="order-id">
+                #{{ order.id }}
+              </div>
+
+            </td>
+
+
+            <!-- CUSTOMER -->
+            <td>
+
+              <div class="customer-info">
+
+                <strong>
+                  {{ order.customerName || 'N/A' }}
+                </strong>
+
+                <span>
+                  {{ order.customerEmail || 'No email' }}
+                </span>
+
+                <span>
+                  {{ order.customerPhone || 'No phone' }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- PRODUCT -->
+            <td>
+
+              <div class="product-info">
+
+                <strong>
+                  {{ order.product?.name || 'Product #' + order.productId }}
+                </strong>
+
+                <span
+                  *ngIf="order.product?.sku">
+                  SKU: {{ order.product?.sku }}
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- QUANTITY -->
+            <td>
+
+              <span class="quantity">
+                {{ order.quantity || 1 }}
+              </span>
+
+            </td>
+
+
+            <!-- AMOUNT -->
+            <td>
+
+              <strong class="amount">
+                ₹{{ getOrderAmount(order) | number:'1.2-2' }}
+              </strong>
+
+            </td>
+
+
+            <!-- PAYMENT -->
+            <td>
+
+              <div
+                class="payment-info"
+                *ngIf="order.payment">
+
+                <span>
+                  {{ order.payment.paymentMethod || 'Razorpay' }}
+                </span>
+
+                <small
+                  [class.payment-success]="
+                    getPaymentStatus(order.payment.status) === 'Captured'
+                  "
+                  [class.payment-failed]="
+                    getPaymentStatus(order.payment.status) === 'Failed'
+                  ">
+
+                  {{ getPaymentStatus(order.payment.status) }}
+
+                </small>
+
+              </div>
+
+              <span
+                class="no-payment"
+                *ngIf="!order.payment">
+
+                Not Paid
+
+              </span>
+
+            </td>
+
+
+            <!-- STATUS -->
+            <td>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(order.status)">
+
+                {{ getOrderStatus(order.status) }}
+
+              </span>
+
+            </td>
+
+
+            <!-- DATE -->
+            <td>
+
+              <span class="date">
+                {{ formatDate(order.createdAt) }}
+              </span>
+
+            </td>
+
+
+            <!-- ACTIONS -->
+            <td>
+
+              <div class="actions">
+
+                <!-- VIEW -->
+                <button
+                  type="button"
+                  class="action-btn view-btn"
+                  title="View order"
+                  (click)="viewOrder(order.id)">
+                  👁
+                </button>
+
+
+                <!-- STATUS -->
+                <button
+                  type="button"
+                  class="action-btn status-btn"
+                  title="Mark as Delivered"
+                  (click)="updateStatus(order, 4)">
+                  ✓
+                </button>
+
+
+                <!-- DELETE -->
+                <button
+                  type="button"
+                  class="action-btn delete-btn"
+                  title="Delete order"
+                  (click)="deleteOrder(order)">
+                  🗑
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ORDER DETAILS MODAL -->
+
+<div
+  class="modal-backdrop"
+  *ngIf="selectedOrder"
+  (click)="closeOrderDetails()">
+
+  <div
+    class="order-modal"
+    (click)="$event.stopPropagation()">
+
+
+    <!-- MODAL HEADER -->
+    <div class="modal-header">
+
+      <div>
+
+        <h2>
+          Order #{{ selectedOrder.id }}
+        </h2>
+
+        <span>
+          {{ formatDate(selectedOrder.createdAt) }}
+        </span>
+
+      </div>
+
+      <button
+        type="button"
+        class="close-btn"
+        (click)="closeOrderDetails()">
+
+        ×
+
+      </button>
+
+    </div>
+
+
+    <!-- CUSTOMER -->
+    <div class="details-section">
+
+      <h3>Customer Information</h3>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+
+          <label>Name</label>
+
+          <span>
+            {{ selectedOrder.customerName || 'N/A' }}
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Email</label>
+
+          <span>
+            {{ selectedOrder.customerEmail || 'N/A' }}
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Phone</label>
+
+          <span>
+            {{ selectedOrder.customerPhone || 'N/A' }}
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Address</label>
+
+          <span>
+            {{ selectedOrder.shippingAddress || 'N/A' }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- PRODUCT -->
+    <div class="details-section">
+
+      <h3>Product Information</h3>
+
+      <div class="product-detail">
+
+        <div>
+
+          <strong>
+            {{
+              selectedOrder.product?.name ||
+              'Product #' + selectedOrder.productId
+            }}
+          </strong>
+
+          <p
+            *ngIf="selectedOrder.product?.description">
+
+            {{ selectedOrder.product?.description }}
+
+          </p>
+
+        </div>
+
+        <div class="product-price">
+
+          ₹{{ getOrderAmount(selectedOrder) | number:'1.2-2' }}
+
+        </div>
+
+      </div>
+
+      <div class="quantity-row">
+
+        Quantity:
+        <strong>
+          {{ selectedOrder.quantity || 1 }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- PAYMENT -->
+    <div
+      class="details-section"
+      *ngIf="selectedOrder.payment">
+
+      <h3>Payment Information</h3>
+
+      <div class="details-grid">
+
+        <div class="detail-item">
+
+          <label>Payment Method</label>
+
+          <span>
+            {{ selectedOrder.payment.paymentMethod || 'Razorpay' }}
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Payment Status</label>
+
+          <span>
+
+            {{ getPaymentStatus(selectedOrder.payment.status) }}
+
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Razorpay Order ID</label>
+
+          <span class="razorpay-id">
+
+            {{ selectedOrder.payment.razorpayOrderId || 'N/A' }}
+
+          </span>
+
+        </div>
+
+
+        <div class="detail-item">
+
+          <label>Razorpay Payment ID</label>
+
+          <span class="razorpay-id">
+
+            {{ selectedOrder.payment.razorpayPaymentId || 'N/A' }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- STATUS -->
+    <div class="details-section">
+
+      <h3>Update Status</h3>
+
+      <div class="status-actions">
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 0)"
+          class="status-action pending">
+          Pending
+        </button>
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 1)"
+          class="status-action confirmed">
+          Confirmed
+        </button>
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 2)"
+          class="status-action processing">
+          Processing
+        </button>
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 3)"
+          class="status-action shipped">
+          Shipped
+        </button>
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 4)"
+          class="status-action delivered">
+          Delivered
+        </button>
+
+        <button
+          type="button"
+          (click)="updateStatus(selectedOrder, 5)"
+          class="status-action cancelled">
+          Cancelled
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- MODAL FOOTER -->
+    <div class="modal-footer">
+
+      <button
+        type="button"
+        class="delete-modal-btn"
+        (click)="deleteOrder(selectedOrder)">
+
+        🗑 Delete Order
+
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        (click)="closeOrderDetails()">
+
+        Close
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div>

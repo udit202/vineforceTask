@@ -145,3 +145,4 @@ D:\task\vineforceTask\obj\Debug\net8.0\refint\vineforceTask.dll
 D:\task\vineforceTask\obj\Debug\net8.0\vineforceTask.pdb
 D:\task\vineforceTask\obj\Debug\net8.0\vineforceTask.genruntimeconfig.cache
 D:\task\vineforceTask\obj\Debug\net8.0\ref\vineforceTask.dll
+D:\task\vineforceTask\obj\Debug\net8.0\vineforceTask.sourcelink.json
