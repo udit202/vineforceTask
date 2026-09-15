@@ -1,0 +1,69 @@
+<!-- src/app/CrudPage/country-crud/country-crud.html -->
+
+<div class="country-crud">
+  <h2>Country Management</h2>
+
+  <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert success" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <form class="country-form" (ngSubmit)="onSubmit()">
+    <h3>{{ isEditMode ? 'Edit Country' : 'Add Country' }}</h3>
+
+    <div class="form-row">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" [(ngModel)]="form.name" required />
+    </div>
+
+    <div class="form-row">
+      <label for="code">Code</label>
+      <input id="code" name="code" type="text" [(ngModel)]="form.code" required />
+    </div>
+
+    <div class="form-row checkbox">
+      <label>
+        <input name="isActive" type="checkbox" [(ngModel)]="form.isActive" />
+        Active
+      </label>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="loading">
+        {{ isEditMode ? 'Update' : 'Create' }}
+      </button>
+      <button type="button" *ngIf="isEditMode" (click)="cancelEdit()">
+        Cancel
+      </button>
+    </div>
+  </form>
+
+  <div class="table-wrapper">
+    <div *ngIf="loading" class="loading">Loading...</div>
+
+    <table *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Name</th>
+          <th>Code</th>
+          <th>Active</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let country of countries">
+          <td>{{ country.id }}</td>
+          <td>{{ country.name }}</td>
+          <td>{{ country.code }}</td>
+          <td>{{ country.isActive ? 'Yes' : 'No' }}</td>
+          <td>
+            <button (click)="startEdit(country)">Edit</button>
+            <button class="danger" (click)="deleteCountry(country.id)">Delete</button>
+          </td>
+        </tr>
+        <tr *ngIf="countries.length === 0">
+          <td colspan="5" class="empty">No countries found.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
